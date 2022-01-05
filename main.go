@@ -39,6 +39,7 @@ func main() {
 		}()
 		xPID = startX()
 		_ = os.Setenv("DISPLAY", ":0")
+		_ = os.Setenv("XDG_SESSION_TYPE", "x11")
 	}
 
 	a := app.NewWithID("io.fyne.fin")

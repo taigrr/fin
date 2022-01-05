@@ -273,7 +273,7 @@ func getUsers() []string {
 func newAvatar(user string, f func(string)) fyne.CanvasObject {
 	ava := canvas.NewImageFromResource(theme.AccountIcon())
 	home, _ := homedir(user)
-	facePath := filepath.Join(home, ".face")
+	facePath := filepath.Join(home, ".config/fin/face")
 	if _, err := os.Stat(facePath); err == nil {
 		ava = canvas.NewImageFromFile(facePath)
 	}
