@@ -91,6 +91,7 @@ static void init_env(struct passwd *pw) {
     set_env("LOGNAME", pw->pw_name);
     set_env("PATH", "/usr/local/sbin:/usr/local/bin:/usr/bin");
     set_env("MAIL", _PATH_MAILDIR);
+	set_env("DISPLAY", ":0");
 
     size_t xauthority_len = strlen(pw->pw_dir) + strlen("/.Xauthority") + 1;
     char *xauthority = malloc(xauthority_len);
@@ -133,19 +134,23 @@ bool login(const char *username, const char *password, const char *exec, pid_t *
         err("pam_setcred");
     }
 
+    struct passwd *pw = getpwnam(username);
+    init_env(pw);
+    
     result = pam_open_session(pam_handle, 0);
     if (result != PAM_SUCCESS) {
         pam_setcred(pam_handle, PAM_DELETE_CRED);
         err("pam_open_session");
     }
 
-    struct passwd *pw = getpwnam(username);
-    init_env(pw);
 
     *child_pid = fork();
     if (*child_pid == 0) {
+		setuid(pw->pw_uid);
+		setgid(pw->pw_gid);
         chdir(pw->pw_dir);
-        execl("/usr/bin/su", "/usr/bin/su", username, pw->pw_shell, "-c", exec, NULL);
+		char **env = pam_getenvlist(pam_handle);
+        execle(pw->pw_shell, pw->pw_shell, "-c", exec, NULL, env);
         printf("Failed to start window manager");
         exit(1);
     }
